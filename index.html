@@ -78,6 +78,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
+  touch-action: manipulation;
 }
 body { position: fixed; inset: 0; height: 100dvh; }
 button { font-family: inherit; color: inherit; }
@@ -4447,6 +4448,7 @@ async function boot() {
 
   // Restore previous session windows
   try { await WM.restoreWindows(); } catch (e) { console.warn(e); }
+  try { WM.clampAll(); } catch (e) {}
   STATE.booted = true;
   WM.persist();
 
