@@ -133,7 +133,7 @@ body.is-dragging { cursor: default; }
   z-index: 1;
   overflow: hidden;
 }
-#windows-layer { position: absolute; inset: 0; pointer-events: none; }
+#windows-layer { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
 #windows-layer > * { pointer-events: auto; }
 
 .desktop-icons {
@@ -145,7 +145,7 @@ body.is-dragging { cursor: default; }
   gap: 2px 4px;
   align-content: start; justify-content: start;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 .d-icon {
   width: 84px; height: 88px;
@@ -1049,9 +1049,8 @@ body.panel-open .toasts { top: 14px; bottom: auto; }
   .clock-btn .d { display: none; }
   .clock-btn { min-width: 46px; height: 38px; }
   .tray-btn { gap: 5px; }
-  .caption-btns .cap.min { display: none; }
-  .cap { width: 38px; }
-  .cap.close { width: 40px; }
+  .caption-btns .cap { width: 36px; }
+  .cap.close { width: 38px; }
   .quick-grid { grid-template-columns: repeat(3, 1fr); }
   .qs-tile span { font-size: 10px; }
   .qs-tile { gap: 6px; }
@@ -2149,9 +2148,10 @@ function attachDesktopActivate(el, open, select, context) {
 }
 
 function desktopContextMenu(x, y) {
+  const byDate = STATE.settings.desktopSort === "date";
   showContextMenu(x, y, [
-    { label: "View", icon: "display", disabled: true },
-    { label: "Sort by", icon: "sort", disabled: true },
+    { label: "Sort by name", icon: "sort", shortcut: byDate ? "" : "✓", action: () => { STATE.settings.desktopSort = "name"; saveSettings(); refreshDesktop(); } },
+    { label: "Sort by date modified", icon: "sort", shortcut: byDate ? "✓" : "", action: () => { STATE.settings.desktopSort = "date"; saveSettings(); refreshDesktop(); } },
     { label: "Refresh", icon: "refresh", action: () => { refreshDesktop(); toast("Desktop refreshed", "Your desktop is up to date.", "refresh"); } },
     { sep: true },
     { label: "New folder", icon: "folder", action: async () => { const p = await fsMkdir("/Desktop", "New folder"); refreshDesktop(); toast("Folder created", baseName(p), "folder"); } },
@@ -2420,6 +2420,11 @@ function bindShellEvents() {
   $("#cal-next").addEventListener("click", () => { STATE.calDate.setMonth(STATE.calDate.getMonth() + 1); renderCalendar(); });
 
   $("#wallpaper").addEventListener("contextmenu", (e) => { e.preventDefault(); desktopContextMenu(e.clientX, e.clientY); });
+  $("#desktop").addEventListener("contextmenu", (e) => {
+    if (e.target.closest(".window") || e.target.closest(".d-icon")) return;
+    e.preventDefault();
+    desktopContextMenu(e.clientX, e.clientY);
+  });
   $("#desktop-icons").addEventListener("contextmenu", (e) => {
     if (e.target.closest(".d-icon")) return;
     e.preventDefault(); desktopContextMenu(e.clientX, e.clientY);
@@ -3867,6 +3872,7 @@ function mountSettings(root, args, api) {
       content.querySelector("#set-reset").addEventListener("click", async () => {
         const ok = await confirmModal("Reset this PC", "This permanently deletes all files, settings and stored app state on this device. The page will reload.", true, "Reset");
         if (!ok) return;
+        try { const d = await db(); d.close(); } catch (e) {}
         try { await new Promise((res, rej) => { const r = indexedDB.deleteDatabase(DB_NAME); r.onsuccess = res; r.onerror = rej; r.onblocked = res; }); } catch (e) {}
         localStorage.clear();
         location.reload();
@@ -3889,7 +3895,7 @@ function mountSettings(root, args, api) {
           <div class="set-row"><div class="lbl">Close menus</div><span class="about-meta">Esc</span></div>
           <div class="set-row"><div class="lbl">Save in Notepad</div><span class="about-meta">Ctrl + S</span></div>
         </div>`;
-      content.querySelector("#set-github").addEventListener("click", () => window.open("https://github.com/Chernuga", "_blank", "noopener"));
+      content.querySelector("#set-github").addEventListener("click", () => window.open("https://github.com/Chernuga/windows-11-virtual", "_blank", "noopener"));
     }
   }
 
@@ -4343,8 +4349,10 @@ async function createMinecraft(root, args, api) {
    Boot: seed IndexedDB, restore session, start the shell
    ============================================================ */
 async function seedFS() {
+  const seeded = await kvGet("seeded", false);
+  if (seeded) return false;
   const existing = await fsAll();
-  if (existing.length) return false;
+  if (existing.length) { await kvSet("seeded", true); return false; }
   const now = Date.now();
   const dirs = ["/Desktop", "/Documents", "/Downloads", "/Pictures", "/Music", "/Videos", "/Desktop/Projects"];
   for (const d of dirs) {
@@ -4408,6 +4416,7 @@ this folder. Nothing is uploaded to a server — it never leaves your device.
   await fsPut({ path: "/Pictures/Bloom.svg", parent: "/Pictures", name: "Bloom.svg", type: "file", mime: "image/svg+xml", content: bloom, size: bloom.length, created: now, modified: now });
   const sunset = wallpaperSvg("sunset");
   await fsPut({ path: "/Pictures/Sunset.svg", parent: "/Pictures", name: "Sunset.svg", type: "file", mime: "image/svg+xml", content: sunset, size: sunset.length, created: now, modified: now - 500 });
+  await kvSet("seeded", true);
   return true;
 }
 
@@ -4447,12 +4456,6 @@ async function boot() {
     setTimeout(() => toast("Windows 11 Virtual", "Right-click the desktop or open Start to begin.", "win"), 700);
   }
   document.body.classList.add("booted");
-
-  // Keep calendar date sane if the tab was left open overnight
-  setInterval(() => {
-    const n = new Date();
-    if (n.getDate() !== new Date().getDate()) updateClocks();
-  }, 60000);
 }
 
 window.addEventListener("error", (e) => {
