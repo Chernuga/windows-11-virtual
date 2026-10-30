@@ -1441,6 +1441,21 @@ body.panel-open .toasts { top: 14px; bottom: auto; }
 .tm-chip .app-icon-img { width: 16px; height: 16px; }
 .set-row .lbl img { width: 22px; height: 22px; }
 
+/* ==========================================================================
+   Virtual 1920x1080 design canvas: every size is a design unit, then the
+   whole shell is scaled to the actual display.
+   ========================================================================== */
+body.virtual {
+  position: fixed;
+  left: 0; top: 0; right: auto; bottom: auto;
+  width: 1920px; height: 1080px;
+  transform-origin: 0 0;
+  overflow: hidden;
+}
+body.virtual .start-menu { max-height: calc(1080px - var(--taskbar-total) - 24px); }
+body.virtual .quick-panel,
+body.virtual .cal-panel { max-height: calc(1080px - var(--taskbar-total) - 22px); }
+
 </style>
 </head>
 <body>
@@ -1875,6 +1890,11 @@ const STATE = {
   persistTimer: null
 };
 
+/* Virtual 1920x1080 design scale. Pointer coordinates are physical; layout is design px. */
+const UI_SCALE = { x: 1, y: 1 };
+const VIRTUAL_W = 1920;
+const VIRTUAL_H = 1080;
+
 async function loadSettings() {
   const stored = await kvGet("settings", null);
   if (stored && typeof stored === "object") STATE.settings = { ...DEFAULT_SETTINGS, ...stored };
@@ -2087,6 +2107,29 @@ const UI = {
   panels: {},
   toastCount: 0
 };
+
+function applyScreenScale() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const ratio = w / Math.max(h, 1);
+  const virtual = w >= 1360 && ratio >= 1.45 && ratio <= 2.05;
+  if (virtual) {
+    UI_SCALE.x = w / VIRTUAL_W;
+    UI_SCALE.y = UI_SCALE.x;
+    const designH = Math.round(h / UI_SCALE.x);
+    document.body.classList.add("virtual");
+    document.body.style.width = VIRTUAL_W + "px";
+    document.body.style.height = designH + "px";
+    document.body.style.transform = `scale(${UI_SCALE.x})`;
+  } else {
+    UI_SCALE.x = 1;
+    UI_SCALE.y = 1;
+    document.body.classList.remove("virtual");
+    document.body.style.width = "";
+    document.body.style.height = "";
+    document.body.style.transform = "";
+  }
+}
 
 function wallpaperCss(id) {
   const w = WALLPAPERS.find((x) => x.id === id) || WALLPAPERS[0];
@@ -2604,6 +2647,10 @@ function desktopContextMenu(x, y) {
 function showContextMenu(x, y, items) {
   const menu = $("#ctx-menu");
   if (!menu) return;
+  const designX = x / UI_SCALE.x;
+  const designY = y / UI_SCALE.y;
+  const vw = document.body.classList.contains("virtual") ? VIRTUAL_W : window.innerWidth;
+  const vh = document.body.classList.contains("virtual") ? VIRTUAL_H : window.innerHeight;
   menu.innerHTML = "";
   items.forEach((it) => {
     if (it.sep) {
@@ -2622,8 +2669,10 @@ function showContextMenu(x, y, items) {
   menu.classList.remove("hidden");
   menu.style.left = "0px"; menu.style.top = "0px";
   const r = menu.getBoundingClientRect();
-  menu.style.left = Math.min(x, window.innerWidth - r.width - 6) + "px";
-  menu.style.top = Math.min(y, window.innerHeight - r.height - 6) + "px";
+  const mw = r.width / UI_SCALE.x;
+  const mh = r.height / UI_SCALE.y;
+  menu.style.left = Math.min(designX, vw - mw - 6) + "px";
+  menu.style.top = Math.min(designY, vh - mh - 6) + "px";
 }
 function hideContextMenu() { const m = $("#ctx-menu"); if (m) m.classList.add("hidden"); }
 
@@ -2879,7 +2928,10 @@ function bindShellEvents() {
   $("#lock-screen").addEventListener("click", unlockOS);
   $("#fullscreen-trigger") && $("#fullscreen-trigger").addEventListener("click", toggleFullscreen);
 
-  window.addEventListener("resize", debounce(() => { if (window.WM) WM.clampAll(); }, 120));
+  window.addEventListener("resize", debounce(() => {
+    applyScreenScale();
+    if (window.WM) WM.clampAll();
+  }, 120));
   document.addEventListener("visibilitychange", () => { if (!document.hidden) updateClocks(); });
 }
 
@@ -3219,9 +3271,11 @@ const WM = (() => {
 
   function onPointerMove(e) {
     if (!drag) return;
-    const dx = e.clientX - drag.startX;
-    const dy = e.clientY - drag.startY;
-    if (!drag.moved && Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
+    const rawX = e.clientX - drag.startX;
+    const rawY = e.clientY - drag.startY;
+    const dx = rawX / (UI_SCALE.x || 1);
+    const dy = rawY / (UI_SCALE.y || 1);
+    if (!drag.moved && Math.abs(rawX) < 3 && Math.abs(rawY) < 3) return;
     drag.moved = true;
     const win = drag.win;
     const { w: dw, h: dh } = desktopSize();
@@ -3229,10 +3283,10 @@ const WM = (() => {
     if (drag.type === "drag") {
       if (drag.state !== "normal" && win.dataset.state !== "normal") {
         const pr = win.dataset.prevRect ? JSON.parse(win.dataset.prevRect) : { width: drag.startW, height: drag.startH };
-        const ratio = (drag.startX - drag.startLeft) / Math.max(drag.startW, 1);
+        const ratio = ((drag.startX / (UI_SCALE.x || 1)) - drag.startLeft) / Math.max(drag.startW, 1);
         drag.startW = pr.width; drag.startH = pr.height;
-        const left = e.clientX - pr.width * clamp(ratio, 0.15, 0.85);
-        const top = e.clientY - 18;
+        const left = (e.clientX / (UI_SCALE.x || 1)) - pr.width * clamp(ratio, 0.15, 0.85);
+        const top = (e.clientY / (UI_SCALE.y || 1)) - 18;
         win.classList.remove("maximized", "snapped");
         win.dataset.state = "normal";
         win.querySelector(".max").innerHTML = ICONS.maximize;
@@ -3240,8 +3294,8 @@ const WM = (() => {
         drag.startLeft = left; drag.startTop = top;
         drag.startX = e.clientX; drag.startY = e.clientY;
       }
-      let left = drag.startLeft + (e.clientX - drag.startX);
-      let top = drag.startTop + (e.clientY - drag.startY);
+      let left = drag.startLeft + dx;
+      let top = drag.startTop + dy;
       left = clamp(left, -drag.startW + 80, dw - 80);
       top = clamp(top, 0, dh - 44);
       win.style.left = Math.round(left) + "px";
@@ -3442,7 +3496,7 @@ async function openFileEntry(entry) {
 function openExplorerPath(path) { openApp("explorer", { path }); }
 
 /* ===== src/js/04-apps.js ===== */
-﻿/* ============================================================
+/* ============================================================
    Built-in apps (all rendered inline — no iframes for OS apps)
    ============================================================ */
 const ExplorerApp = { refresh: null };
@@ -4792,7 +4846,9 @@ function mountPaint(root, args, api) {
 
   function pos(e) {
     const r = canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
+    const sx = canvas.clientWidth / Math.max(r.width, 1);
+    const sy = canvas.clientHeight / Math.max(r.height, 1);
+    return { x: (e.clientX - r.left) * sx, y: (e.clientY - r.top) * sy };
   }
   function stroke(a, b) {
     ctx.strokeStyle = tool === "eraser" ? "#ffffff" : color;
@@ -5489,6 +5545,7 @@ this folder. Nothing is uploaded to a server — it never leaves your device.
 }
 
 async function boot() {
+  applyScreenScale();
   try { await loadSettings(); } catch (e) { console.warn(e); }
   try { await seedFS(); } catch (e) { console.warn("Seed failed", e); }
 
