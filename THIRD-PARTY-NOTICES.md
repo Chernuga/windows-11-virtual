@@ -14,8 +14,10 @@ Used by the Minecraft Parkour app. The minified module is embedded as text and l
 
 The default wallpaper is the Windows 11 Bloom image supplied with Windows
 (`img19.jpg` / `img0.jpg`), converted to WebP for this demo. The app icons
-were extracted from the Windows 11 installation on this machine. Windows,
-the Bloom artwork and the app icons are trademarks/copyright of Microsoft
-Corporation. This project is a non-commercial UI recreation and is not
-affiliated with Microsoft.
+were extracted from the Windows 11 installation on this machine. The shell
+and file-type icons come from the Windows Icon Archive
+(https://limehawk.github.io/windows-icon-archive/), sourced from
+`bartekl1/windows-ui-assets`. Windows, the Bloom artwork and the icons are
+trademarks/copyright of Microsoft Corporation. This project is a
+non-commercial UI recreation and is not affiliated with Microsoft.
 
