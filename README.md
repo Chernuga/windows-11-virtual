@@ -6,21 +6,21 @@ A Windows 11–style desktop that lives in **one HTML file**. No server, no buil
 
 ## What is in it
 
-- Windows 11 24H2-style shell: left-aligned taskbar with a wide Search box, dark acrylic Start menu, Weather / hidden-icons / language tray, Quick Settings, notifications + calendar, task view, desktop context menu, light/dark themes and accent colours.
-- Uses the real Windows 11 Bloom wallpaper (bundled as WebP) with acrylic blur panels.
+- Windows 11 24H2-style shell: left-aligned taskbar with a wide Search box, dark acrylic Start menu, hidden-icons chevron, network/sound/battery tray, Quick Settings, notifications + calendar, task view, desktop context menu, light/dark themes and accent colours.
+- Uses the real Windows 11 Bloom wallpaper (bundled as WebP) and real Windows 11 app icons extracted from the local Windows install.
 - Real window management: drag, resize, minimise, maximise, double-click title bar, snap to left/right/top, restore session after reload.
 - **IndexedDB** storage for the virtual file system, wallpaper/theme settings, notifications, sticky notes and open-window state. Nothing is sent to a server.
-- 18 built-in apps, all inline:
+- 17 built-in apps, all inline:
   - File Explorer (folders, upload, rename, delete, download, grid/list views)
   - Notepad (open/save files from the virtual FS)
   - Photos (image viewer with filmstrip and zoom)
-  - Browser (embeds sites that allow framing, with an open-in-new-tab fallback)
+  - Microsoft Edge (embeds sites that allow framing, with an open-in-new-tab fallback)
   - German Article Finder (Wiktionary API)
   - Minecraft-style parkour (Three.js r160 bundled inline)
   - Calculator
   - Settings (wallpaper, accent, theme, storage reset, about)
   - ChatADV shortcut
-  - Clock, Weather, Task Manager, Sticky Notes, Terminal, Paint, Calendar, Tips, About
+  - Clock, Task Manager, Sticky Notes, Terminal, Paint, Calendar, Tips, About
 - Responsive layout for Android: compact Windows-sized controls, safe-area support, full-screen windows on narrow screens, floating small windows for Calculator / German / ChatADV.
 
 The Start menu is laid out to match the Windows 11 24H2 dark theme: 640 × 720 px panel, six-column pinned grid, six recommended items, and a user/power footer.
