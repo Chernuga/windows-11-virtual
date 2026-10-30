@@ -6,10 +6,11 @@ A Windows 11–style desktop that lives in **one HTML file**. No server, no buil
 
 ## What is in it
 
-- Windows 11 style shell: centred taskbar, Start menu, search, Quick Settings, notifications + calendar, task view, desktop context menu, light/dark themes and accent colours.
+- Windows 11 24H2-style shell: left-aligned taskbar with a wide Search box, dark acrylic Start menu, Weather / hidden-icons / language tray, Quick Settings, notifications + calendar, task view, desktop context menu, light/dark themes and accent colours.
+- Uses the real Windows 11 Bloom wallpaper (bundled as WebP) with acrylic blur panels.
 - Real window management: drag, resize, minimise, maximise, double-click title bar, snap to left/right/top, restore session after reload.
-- **IndexedDB** storage for the virtual file system, wallpaper/theme settings, notifications and open-window state. Nothing is sent to a server.
-- Built-in apps, all inline:
+- **IndexedDB** storage for the virtual file system, wallpaper/theme settings, notifications, sticky notes and open-window state. Nothing is sent to a server.
+- 18 built-in apps, all inline:
   - File Explorer (folders, upload, rename, delete, download, grid/list views)
   - Notepad (open/save files from the virtual FS)
   - Photos (image viewer with filmstrip and zoom)
@@ -19,7 +20,10 @@ A Windows 11–style desktop that lives in **one HTML file**. No server, no buil
   - Calculator
   - Settings (wallpaper, accent, theme, storage reset, about)
   - ChatADV shortcut
+  - Clock, Weather, Task Manager, Sticky Notes, Terminal, Paint, Calendar, Tips, About
 - Responsive layout for Android: compact Windows-sized controls, safe-area support, full-screen windows on narrow screens, floating small windows for Calculator / German / ChatADV.
+
+The Start menu is laid out to match the Windows 11 24H2 dark theme: 640 × 720 px panel, six-column pinned grid, six recommended items, and a user/power footer.
 
 ## Run it
 
