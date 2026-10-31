@@ -1451,9 +1451,9 @@ body.virtual {
   transform-origin: 0 0;
   overflow: hidden;
 }
-body.virtual .start-menu { max-height: calc(1080px - var(--taskbar-total) - 24px); }
+body.virtual .start-menu { max-height: calc(var(--screen-h, 1080px) - var(--taskbar-total) - 24px); }
 body.virtual .quick-panel,
-body.virtual .cal-panel { max-height: calc(1080px - var(--taskbar-total) - 22px); }
+body.virtual .cal-panel { max-height: calc(var(--screen-h, 1080px) - var(--taskbar-total) - 22px); }
 
 /* Real shell icons in compact slots */
 .fx-side-item > img { width: 16px; height: 16px; flex: none; object-fit: contain; }
@@ -2142,22 +2142,25 @@ const UI = {
 function applyScreenScale() {
   const w = window.innerWidth;
   const h = window.innerHeight;
-  const ratio = w / Math.max(h, 1);
-  const virtual = w >= 1360 && ratio >= 1.45 && ratio <= 2.05;
+  const scale = Math.max(1, Math.min(w / VIRTUAL_W, h / VIRTUAL_H));
+  const virtual = scale > 1.005;
   if (virtual) {
-    UI_SCALE.x = w / VIRTUAL_W;
-    UI_SCALE.y = UI_SCALE.x;
-    const designH = Math.round(h / UI_SCALE.x);
+    const designW = Math.round(w / scale);
+    const designH = Math.round(h / scale);
+    UI_SCALE.x = scale;
+    UI_SCALE.y = scale;
     document.body.classList.add("virtual");
-    document.body.style.width = VIRTUAL_W + "px";
+    document.body.style.width = designW + "px";
     document.body.style.height = designH + "px";
-    document.body.style.transform = `scale(${UI_SCALE.x})`;
+    document.body.style.setProperty("--screen-h", designH + "px");
+    document.body.style.transform = `scale(${scale})`;
   } else {
     UI_SCALE.x = 1;
     UI_SCALE.y = 1;
     document.body.classList.remove("virtual");
     document.body.style.width = "";
     document.body.style.height = "";
+    document.body.style.removeProperty("--screen-h");
     document.body.style.transform = "";
   }
 }
@@ -2680,8 +2683,8 @@ function showContextMenu(x, y, items) {
   if (!menu) return;
   const designX = x / UI_SCALE.x;
   const designY = y / UI_SCALE.y;
-  const vw = document.body.classList.contains("virtual") ? VIRTUAL_W : window.innerWidth;
-  const vh = document.body.classList.contains("virtual") ? VIRTUAL_H : window.innerHeight;
+  const vw = document.body.clientWidth;
+  const vh = document.body.clientHeight;
   menu.innerHTML = "";
   items.forEach((it) => {
     if (it.sep) {

@@ -25,7 +25,7 @@ A Windows 11–style desktop that lives in **one HTML file**. No server, no buil
 
 The Start menu is laid out to match the Windows 11 24H2 dark theme: 640 × 720 px panel, six-column pinned grid, six recommended items, and a user/power footer.
 
-The desktop runs on a **virtual 1920 × 1080 design canvas**. All shell/window sizes are design units, and at desktop widths the entire canvas is scaled uniformly to the display. Narrow/mobile screens switch to the fluid touch layout.
+The desktop uses a **virtual 1920 × 1080 design canvas**. It never shrinks below native Windows sizes: at 1920 × 1080 it is 1:1, and on larger displays it scales up (1.33× at 2560 × 1440, 2× at 4K). Narrow/mobile screens switch to the fluid touch layout.
 
 ## Run it
 
