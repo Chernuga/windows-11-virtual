@@ -7,7 +7,7 @@ A Windows 11–style desktop that lives in **one HTML file**. No server, no buil
 ## What is in it
 
 - Windows 11 24H2-style shell: left-aligned taskbar with a wide Search box, dark acrylic Start menu, hidden-icons chevron, network/sound/battery tray, Quick Settings, notifications + calendar, task view, desktop context menu, light/dark themes and accent colours.
-- Uses the real Windows 11 Bloom wallpaper (bundled as WebP), real Windows 11 app icons extracted from the local Windows install, and shell/file icons from the [Windows Icon Archive](https://limehawk.github.io/windows-icon-archive/).
+- Uses the real Windows 11 Bloom wallpaper (bundled as WebP), real Windows 11 app icons extracted from the local Windows install, and shell/file icons from the [Windows Icon Archive](https://limehawk.github.io/windows-icon-archive/). The archive also supplies the 3D icons for German Articles, ChatADV, Tips and About; Minecraft keeps a custom icon because Windows has no equivalent.
 - Real window management: drag, resize, minimise, maximise, double-click title bar, snap to left/right/top, restore session after reload.
 - **IndexedDB** storage for the virtual file system, wallpaper/theme settings, notifications, sticky notes and open-window state. Nothing is sent to a server.
 - 17 built-in apps, all inline:
@@ -25,7 +25,7 @@ A Windows 11–style desktop that lives in **one HTML file**. No server, no buil
 
 The Start menu is laid out to match the Windows 11 24H2 dark theme: 640 × 720 px panel, six-column pinned grid, six recommended items, and a user/power footer.
 
-The desktop uses a **virtual 1920 × 1080 design canvas**. It never shrinks below native Windows sizes: at 1920 × 1080 it is 1:1, and on larger displays it scales up (1.33× at 2560 × 1440, 2× at 4K). Narrow/mobile screens switch to the fluid touch layout.
+The desktop uses a **virtual 1920 × 1080 design canvas**. Everything is laid out in design units and the whole canvas scales proportionally with the viewport width: 1:1 at 1920 × 1080, 75% at 1440 × 900, 200% at 4K. Windows, icons, panels and pointer interactions all scale together. Phones under 480 px use the fluid touch layout.
 
 ## Run it
 
